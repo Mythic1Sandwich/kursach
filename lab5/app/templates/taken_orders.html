@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Взятые заказы</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Адрес Отправления</th>
+            <th>Адрес Назначения</th>
+            <th>Дата заказа</th>
+            <th>Время заказа</th>
+            <th>Статус</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td>{{ order.order_id }}</td>
+            <td>{{ order.source_address }}</td>
+            <td>{{ order.destination_address }}</td>
+            <td>{{ order.date_order }}</td>
+            <td>{{ order.time_order }}</td>
+            <td>{{ order.order_status }}</td>
+            <td>
+               
+                {% if order.order_status == 'Заказ выполнен' %}
+                <a class="btn btn-info" href="{{ url_for('view_order', order_id=order.order_id) }}">Просмотр</a>
+                
+                {% elif order.order_status == 'Выполнение заказа' %}
+      
+                    <form action="{{ url_for('complete_order', order_id=order.order_id) }}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-success">Завершить заказ</button>
+                    </form>
+                {% elif order.order_status == 'Взят в работу' %}
+                  <form action="{{ url_for('start_order', order_id=order.order_id) }}" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-primary">Начать выполнение заказа</button>
+                        </form>
+                    <form action="{{ url_for('cancel_order', order_id=order.order_id) }}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger">Отказаться от заказа</button>
+                    </form>
+                {% else %}
+                 
+                    <form action="{{ url_for('delete_order', order_id=order.order_id) }}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger">Отменить заказ</button>
+                    </form>
+                 
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

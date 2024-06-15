@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Редактирование заказа</h2>
+<form method="post">
+    <div class="mb-3">
+        <label class="form-label" for="date_order">Дата доставки</label>
+        <input class="form-control" type="date" id="date_order" name="date_order" value="{{ order.date_order }}">
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="time_order">Время доставки</label>
+        <input class="form-control" type="time" id="time_order" name="time_order" value="{{ order.time_order }}">
+    </div>
+    <div class="mb-3">
+        <label for="user_descr" class="form-label">Дополнительное описание:</label>
+        <textarea class="form-control" id="user_descr" name="user_descr" rows="3"></textarea>
+      </div>
+    <button type="submit" class="btn btn-primary">Отправить запрос на изменение</button>
+</form>
+{% endblock %}

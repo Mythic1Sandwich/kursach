@@ -1,0 +1,11 @@
+body {
+    font-family: "Montserrat", sans-serif;
+    text-align: justify;
+    font-size: 1.1rem;
+    min-height: 100vh;
+    }
+    
+    .footer-line {
+    opacity: 1.25;
+    margin: 0;
+    }

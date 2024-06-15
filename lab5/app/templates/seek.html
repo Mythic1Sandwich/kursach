@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<table class="table">
+    <tbody>
+        <tr>
+            <th scope="row">Логин</th>
+            <td>{{ user.login }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Идентификатор</th>
+            <td>{{ user.user_id }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Имя</th>
+            <td>{{ user.first_name }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Фамилия</th>
+            <td>{{ user.last_name }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Отчество</th>
+            <td>{{ user.surname }}</td>
+        </tr>
+        {% if user.role_id == 2 %}
+        <tr>
+            <th scope="row">Паспортные данные:</th>
+            <td>{{ user.pass_info }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Класс вождения:</th>
+            <td>{{ user.classdriver}}</td>
+        </tr>
+    {% endif %}
+    </tbody>
+</table>
+{% endblock %}

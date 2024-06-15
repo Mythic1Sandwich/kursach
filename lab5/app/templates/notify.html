@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class="container mt-5">
+        <h1>Уведомления</h1>
+        {% if notifications %}
+        <form action="{{ url_for('delete_all_notifications') }}" method="post">
+            <button type="submit" class="btn btn-danger mt-3 mb-3">Удалить все уведомления</button>
+        </form>
+        {% endif %}
+        {% if notifications %}
+            {% for notification in notifications %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Идентификатор уведомления: {{ notification.note_id }}</h5>
+                        <p class="card-text">Время уведомления: {{ notification.note_time }}</p>
+                        <p class="card-text">Описание: {{ notification.description }}</p>
+                        <p class="card-text">Описание: {{ notification.edit_date }}</p>
+
+                        <div class="my-2 mx-2">
+                        {% if notification.button == "1" %}
+                        <form method="post" action="{{ url_for('accept_order', order_id=notification.order_id) }}">
+                            <div class="mb-3">
+                                <label class="form-label" for="edit_date">Дата доставки</label>
+                                <input class="form-control" type="date" id="edit_date" name="edit_date" value="{{ notification.edit_date }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="edit_time">Время доставки</label>
+                                <input class="form-control" type="time" id="edit_time" name="edit_time" value="{{ notification.edit_time }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_descr" class="form-label">Дополнительное описание:</label>
+                                <textarea class="form-control" id="edit_descr" name="edit_descr" rows="3">{{ notification.edit_descr }}</textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-info">Принять</button>
+                        </form>
+                        <form method="post" action="{{ url_for('decline_order', order_id=notification.order_id) }}">
+                            <button type="submit" class="btn btn-info">Отклонить</button>
+                        </form>
+                    </div>
+                {% endif %}
+                        <form action="{{ url_for('delete_notification', note_id=notification.note_id) }}" method="post">
+                            <button type="submit" class="btn btn-danger">Удалить уведомление</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>Уведомления отсутствуют</p>
+        {% endif %}
+        {% if total_pages > 1 %}
+        <div class="container mb-5 my-5">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if page > 1 %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('notifications', page=1) }}">Первая</a></li>
+                        <li class="page-item"><a class="page-link" href="{{ url_for('notifications', page=page-1) }}">Предыдущая</a></li>
+                    {% endif %}
+                    {% for p in range(1, total_pages + 1) %}
+                        <li class="page-item {% if p == page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('notifications', page=p) }}">{{ p }}</a>
+                        </li>
+                    {% endfor %}
+                    {% if page < total_pages %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('notifications', page=page+1) }}">Следующая</a></li>
+                        <li class="page-item"><a class="page-link" href="{{ url_for('notifications', page=total_pages) }}">Последняя</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}

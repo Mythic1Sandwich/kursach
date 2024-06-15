@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<form method="post">
+    <div class="mb-3">
+        <label class="form-label" for="source_address">Адрес отправления</label>
+        <input class="form-control" type="text" id="source_address" name="source_address" value="{{ order.source_address or '' }}" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="destination_address">Адрес назначения</label>
+        <input class="form-control" type="text" id="destination_address" name="destination_address" value="{{ order.destination_address or '' }}" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="order_weight">Вес груза</label>
+        <input class="form-control" type="text" id="order_weight" name="order_weight" value="{{ order.order_weight or '' }}">
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="cargo_id">Вид груза</label>
+        <select class="form-select" id="cargo_id" name="cargo_id">
+            <option value="1" {% if order.cargo_id == 1 %}selected{% endif %}>Электроника</option>
+            <option value="2" {% if order.cargo_id == 2 %}selected{% endif %}>Бытовая техника</option>
+            <option value="3" {% if order.cargo_id == 3 %}selected{% endif %}>Мебель</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="date_order">Дата доставки</label>
+        <input class="form-control" type="date" id="date_order" name="date_order" value="{{ order.date_order or '' }}">
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="time_order">Время доставки</label>
+        <input class="form-control" type="time" id="time_order" name="time_order" value="{{ order.time_order or '' }}">
+    </div>
+    <div class="mb-3">
+        <label class="form-label" for="car_type_id">Тип машины</label>
+        <select class="form-select" id="car_type_id" name="car_type_id">
+            <option value="1" {% if order.car_type_id == 1 %}selected{% endif %}>Грузовик</option>
+            <option value="2" {% if order.car_type_id == 2 %}selected{% endif %}>Легковая машина</option>
+            <option value="3" {% if order.car_type_id == 3 %}selected{% endif %}>Газель</option>
+        </select>
+    </div>
+   
+    <div class="mb-3">
+        <label class="form-label" for="money_status">Тип оплаты</label>
+        <select class="form-select" id="money_status" name="money_status" onchange="generateOrderCost()">
+            <option value="1" {% if order.money_status == 1 %}selected{% endif %}>Наличными курьеру</option>
+            <option value="2" {% if order.money_status == 2 %}selected{% endif %}>Безналичная оплата</option>
+            <option value="3" {% if order.money_status == 3 %}selected{% endif %}>Безналичная оплата курьеру</option>
+        </select>
+        
+    </div>
+    <div class="mb-3" style="display: none;">
+        <label class="form-label" for="order_cost">Стоимость заказа</label>
+        <input class="form-control" type="text" id="order_cost" name="order_cost" disabled>
+    </div>
+    <div class="mb-3">
+        <label for="user_descr" class="form-label">Дополнительное описание:</label>
+        <textarea class="form-control" id="user_descr" name="user_descr" rows="3"></textarea>
+      </div>
+    <script>
+        function generateOrderCost() {
+
+            var requiredFieldsFilled = document.getElementById("source_address").value.trim() !== "" &&
+                document.getElementById("destination_address").value.trim() !== "" &&
+                document.getElementById("order_weight").value.trim() !== "" &&
+                document.getElementById("cargo_id").value.trim() !== "" &&
+                document.getElementById("date_order").value.trim() !== "" &&
+                document.getElementById("time_order").value.trim() !== "" &&
+                document.getElementById("car_type_id").value.trim() !== "";
+            if (requiredFieldsFilled) {
+                var randomCost = Math.floor(Math.random() * (20000 - 7000 + 1)) + 7000; 
+                document.getElementById("order_cost").value = randomCost; 
+                document.getElementById("order_cost").parentNode.style.display = "block"; 
+            } else {
+                document.getElementById("order_cost").parentNode.style.display = "none";
+            }
+        }
+    </script>
+    
+    <button class="btn btn-primary">Сохранить</button>
+</form>
+{% endblock %}
