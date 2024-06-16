@@ -4,13 +4,13 @@
 <h2>Личный кабинет</h2>
 <div class="row">
     {% for user in users %}
-    <div class="col-md-6"> <!-- Ширина колонки половина от размера -->
+    <div class="col-md-6"> 
         <div class="card">
-            <div class="card-body d-flex align-items-center"> <!-- Добавляем d-flex и align-items-center для выравнивания -->
+            <div class="card-body d-flex align-items-center"> 
                 {% if user.user_image %}
-                <img src="data:image/jpeg;base64,{{ user.user_image }}" alt="Profile Image" class="img-fluid rounded-start" style="max-width: 50%;"> <!-- Используем max-width для контроля размера -->
+                <img src="data:image/jpeg;base64,{{ user.user_image }}" alt="Profile Image" class="img-fluid rounded-start" style="max-width: 50%;"> 
                 {% endif %}
-                <div class="ms-3"> <!-- Отступ слева -->
+                <div class="ms-3">
                     <h5 class="card-title">{{ user.first_name }} {{ user.last_name }}</h5>
                     <p class="card-text">
                         <strong>Логин:</strong> {{ user.login }}<br>
@@ -27,7 +27,8 @@
                     <a class="btn btn-primary" href="{{ url_for('edit_user', user_id=user.user_id) }}">Редактировать</a>
                     </div>
                     <div class="mx-0.5">
-                    <a class="btn btn-secondary" aria-current="page" href="{{ url_for('change_password', user_id=current_user.id) }}">Изменить пароль</a>
+                    <a class="btn btn-secondary" aria-current="page" href="{{ url_for('change_password', user_id=current_user.id) }}">
+                        Изменить пароль</a>
                     <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#delete-modal"
                     data-delete-url="{{ url_for('delete_user', user_id=user.user_id) }}">Удалить</button>
                     </div>

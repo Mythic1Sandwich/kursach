@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-    <div class="container mt-5">
+    <div class="container mt-5 mx-5 my-5">
         <h1>Уведомления</h1>
         {% if notifications %}
         <form action="{{ url_for('delete_all_notifications') }}" method="post">
@@ -14,7 +14,6 @@
                         <h5 class="card-title">Идентификатор уведомления: {{ notification.note_id }}</h5>
                         <p class="card-text">Время уведомления: {{ notification.note_time }}</p>
                         <p class="card-text">Описание: {{ notification.description }}</p>
-                        <p class="card-text">Описание: {{ notification.edit_date }}</p>
 
                         <div class="my-2 mx-2">
                         {% if notification.button == "1" %}

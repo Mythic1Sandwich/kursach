@@ -69,7 +69,8 @@ def auth():
     remember = request.form.get("remember") == "on"
 
 
-    query = 'SELECT user_id, login, role_name FROM users join roles on users.role_id = roles.role_id WHERE login=%s AND password=SHA2(%s, 256)'
+    query = 'SELECT user_id, login, role_name FROM users join roles'
+    'on users.role_id = roles.role_id WHERE login=%s AND password=SHA2(%s, 256)'
     
     print(query)
 
@@ -109,13 +110,10 @@ def users():
     with db_connector.connect().cursor(named_tuple=True) as cursor:
         cursor.execute(query, (current_user.id,))
         data = cursor.fetchall()
-
-    # Создаем список для хранения обновленных данных пользователей
     users_data = []
     for user in data:
-        # Кодируем изображение в base64, если оно есть
         if user.user_image:
-            user_data = dict(user._asdict())  # Преобразуем namedtuple в словарь
+            user_data = dict(user._asdict())  
             user_data['user_image'] = base64.b64encode(user.user_image).decode('utf-8')
             users_data.append(user_data)
         else:
@@ -173,7 +171,6 @@ def create_order():
         order = get_form_data1(CREATE_ORDER_FIELDS + ['order_cost', 'money_status'])
         order['user_id'] = current_user.id
         order['order_status'] = "В обработке"
-
         import random
         order['order_cost'] = random.randint(7000, 20000)
         query = (
@@ -204,7 +201,7 @@ def cancel_order(order_id):
                 cursor.execute(query_update_order, (order_id, current_user.id))
                 db_connector.connect().commit()
             notification_description = "Водитель отказался от выполнения заказа"
-            insert_notification_query = "INSERT INTO notifications (user_id, order_id, description, button) VALUES (%s, %s, %s, 0)"
+            insert_notification_query = "INSERT INTO notifications (user_id, order_id, description, button) VALUES (%s, %s, %s, '0')"
             query_get_client_id = "SELECT user_id FROM orders WHERE order_id = %s"
             
             with db_connector.connect().cursor() as cursor:
@@ -245,104 +242,103 @@ def edit_order(order_id):
             return redirect(url_for('orders'))
         
         if order.order_status == 'Взят в работу':
-            # Notify the driver with accept and decline buttons
-            notify_driver(order_id, f"Пользователь отправил запрос на изменение заказа номер {order_id}", 1, request.form.get('date_order'), request.form.get('time_order'), request.form.get('user_descr'))
-            
-            
-            
+            notify_driver(order_id, f"Пользователь отправил запрос на изменение заказа номер {order_id}",
+                          1, request.form.get('date_order'), request.form.get('time_order'), request.form.get('user_descr'))
             flash("Запрос на изменение заказа отправлен", category="success")
             return redirect(url_for('orders'))
+        else:
+            query = (
+                "UPDATE orders SET date_order=%(date_order)s, time_order=%(time_order)s "
+                "WHERE order_id=%(order_id)s"
+            )
         
-        # Update the order in the database if it's still editable
-        query = (
-            "UPDATE orders SET date_order=%(date_order)s, time_order=%(time_order)s "
-            "WHERE order_id=%(order_id)s"
-        )
-        
-        try:
-            with db_connector.connect().cursor(named_tuple=True) as cursor:
-                cursor.execute(query, dict(updated_order, order_id=order_id))
-                db_connector.connect().commit()
+            try:
+                with db_connector.connect().cursor(named_tuple=True) as cursor:
+                    cursor.execute(query, dict(updated_order, order_id=order_id))
+                    db_connector.connect().commit()
             
-            flash("Запрос на изменение заказа отправлен", category="success")
+                flash("Заказ изменен", category="success")
            
-        except DatabaseError as error:
-            flash(f'Ошибка редактирования заказа! {error}', category="danger")
-            db_connector.connect().rollback()
-             
+            except DatabaseError as error:
+                flash(f'Ошибка редактирования заказа! {error}', category="danger")
+                db_connector.connect().rollback()
+            return redirect(url_for('orders'))
     return render_template("edit_order.html", order=order)
 
 @app.route('/orders/<int:order_id>/accept', methods=["GET","POST"])
 @login_required
 def accept_order(order_id):
     if request.method == 'POST':
-        # Extract data from the form
-        date_order = request.form.get('edit_date')
+        if current_user.is_driver():
+            
+            date_order = request.form.get('edit_date')
      
-        time_order = request.form.get('edit_time')
+            time_order = request.form.get('edit_time')
      
-        user_descr = request.form.get('edit_descr')
+            user_descr = request.form.get('edit_descr')
      
-        query = (
+            query = (
             "UPDATE orders SET date_order=%s, time_order=%s, user_descr=%s "
             "WHERE order_id=%s"
         )
-        query2 = (
+            query2 = (
             "UPDATE notifications SET button='0'"
             "WHERE order_id=%s"
         )
-        try:
-            with db_connector.connect().cursor() as cursor:
-                cursor.execute(query, (date_order, time_order, user_descr, order_id))
+            try:
+                with db_connector.connect().cursor() as cursor:
+                    cursor.execute(query, (date_order, time_order, user_descr, order_id))
                 
                 
-                cursor.execute(query2, (order_id, ))
-                db_connector.connect().commit()
+                    cursor.execute(query2, (order_id, ))
+                    db_connector.connect().commit()
                
             
-            flash("Вы приняли изменения в заказе", category="success")
-        except DatabaseError as error:
-            flash(f'Ошибка при принятии изменений заказа: {error}', category="danger")
-            db_connector.connect().rollback()
-
+                flash("Вы приняли изменения в заказе", category="success")
+            except DatabaseError as error:
+                flash(f'Ошибка при принятии изменений заказа: {error}', category="danger")
+                db_connector.connect().rollback()
+        else:
+            flash('Вы не имеете доступа к данной странице')
     return redirect(url_for('notifications'))
 @app.route('/orders/<int:order_id>/decline', methods=["POST"])
 @login_required
 def decline_order(order_id):
     if request.method == 'POST':
-        query_get_client_id = "SELECT user_id FROM orders WHERE order_id = %s"
-        try:
-            connection = db_connector.connect()
-            with connection.cursor() as cursor:
-                cursor.execute(query_get_client_id, (order_id,))
-                result = cursor.fetchone()
+        if current_user.is_driver():
+            query_get_client_id = "SELECT user_id FROM orders WHERE order_id = %s"
+            try:
+                connection = db_connector.connect()
+                with connection.cursor() as cursor:
+                    cursor.execute(query_get_client_id, (order_id,))
+                    result = cursor.fetchone()
                 
-                if result:
-                    client_id = result[0]  # Assuming the result is a dictionary, change to `result[0]` if it's a tuple
-                    notification_description = "Водитель отклонил ваши изменения"
-                    query2 = (
+                    if result:
+                        client_id = result[0]  
+                        notification_description = "Водитель отклонил ваши изменения"
+                        query2 = (
             "UPDATE notifications SET button='0'"
             "WHERE order_id=%s"
         )
-                    # Insert notification into the database
-                    insert_notification_query = (
+                        insert_notification_query = (
                         "INSERT INTO notifications (user_id, order_id, description, button) "
                         "VALUES (%s, %s, %s, '0')"
                     )
-                    cursor.execute(insert_notification_query, (client_id, order_id, notification_description))
-                    connection.commit()
-                    cursor.execute(query2, (order_id, ))
-                    db_connector.connect().commit()
+                        cursor.execute(insert_notification_query, (client_id, order_id, notification_description))
+                        connection.commit()
+                        cursor.execute(query2, (order_id, ))
+                        db_connector.connect().commit()
                
                     
-                    flash("Вы отклонили изменения", category="danger")
-                else:
-                    flash("Клиент не найден", category="danger")
+                        flash("Вы отклонили изменения", category="danger")
+                    else:
+                        flash("Клиент не найден", category="danger")
         
-        except DatabaseError as error:
-            flash(f'Ошибка при отклонении изменений заказа: {error}', category="danger")
-            connection.rollback()
-
+            except DatabaseError as error:
+                flash(f'Ошибка при отклонении изменений заказа: {error}', category="danger")
+                connection.rollback()
+        else:
+            flash('Вы не имеете доступа к данной странице')
     return redirect(url_for('notifications'))
 
 @app.route('/orders/<int:order_id>/view')
@@ -380,6 +376,7 @@ def notify_driver(order_id, message, button, edit_date,edit_time,edit_descr):
 def delete_order(order_id):
     if current_user.is_client():
         query_update_order_status = "UPDATE orders SET order_status='Отменен' WHERE order_id=%s"
+        notify_driver(order_id, 'Клиент отменил заказ', '0', '1970-01-01','00:00','')
         try:
             with db_connector.connect().cursor() as cursor:
                 cursor.execute(query_update_order_status, (order_id,))
@@ -409,14 +406,6 @@ def get_form_data1(required_fields):
     return data
 
 
-@app.route('/users/<int:user_id>/seek', methods=['GET', 'POST'])
-def seek(user_id):
-    query =  ('SELECT u.*, d.pass_info, d.classdriver FROM users u LEFT JOIN drivers_pro d ON u.user_id = d.driver_id WHERE u.user_id=%s')
-    
-    with db_connector.connect().cursor(named_tuple=True) as cursor:
-        cursor.execute(query, (user_id, ))
-        user = cursor.fetchone()
-    return render_template("seek.html", user=user)
 
 @app.route('/user/<int:user_id>/delete', methods=["POST"])
 @login_required
@@ -465,7 +454,8 @@ def create_user():
             with db_connector.connect().cursor() as cursor:
                 query_user = (
                     "INSERT INTO users (login, password, first_name, last_name, surname, date_birth, email, phone_num, role_id, user_image) "
-                    "VALUES (%(login)s, SHA2(%(password)s, 256), %(first_name)s, %(last_name)s, %(surname)s, %(date_birth)s, %(email)s, %(phone_num)s, %(role_id)s, %(user_image)s)"
+                    "VALUES (%(login)s, SHA2(%(password)s, 256), %(first_name)s, %(last_name)s, %(surname)s,"
+                    "%(date_birth)s, %(email)s, %(phone_num)s, %(role_id)s, %(user_image)s)"
                 )
                 user['user_image'] = user_image  
                 cursor.execute(query_user, user)
@@ -593,7 +583,7 @@ def change_password(user_id):
 @login_required
 def take_order(order_id):
     if current_user.is_driver():
-        # Получить информацию о пользователе, создавшем заказ
+
         query_get_client_id = "SELECT user_id FROM orders WHERE order_id = %s"
         with db_connector.connect().cursor() as cursor:
             cursor.execute(query_get_client_id, (order_id,))
@@ -608,7 +598,6 @@ def take_order(order_id):
                     cursor.execute(query, (current_user.id, order_id))
                     db_connector.connect().commit()
 
-                # Вставить уведомление для клиента
                 notification_description = "Ваш заказ был взят в работу водителем"
                 insert_notification_query = "INSERT INTO notifications (user_id, order_id, description, button) VALUES (%s, %s, %s, 0)"
                 with db_connector.connect().cursor() as cursor:
