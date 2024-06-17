@@ -69,8 +69,7 @@ def auth():
     remember = request.form.get("remember") == "on"
 
 
-    query = 'SELECT user_id, login, role_name FROM users join roles'
-    'on users.role_id = roles.role_id WHERE login=%s AND password=SHA2(%s, 256)'
+    query = 'SELECT user_id, login, role_name FROM users join roles on users.role_id = roles.role_id WHERE login=%s AND password=SHA2(%s, 256)'
     
     print(query)
 
@@ -78,7 +77,7 @@ def auth():
 
         cursor.execute(query, (login, password))
 
-        print(cursor.statement)
+        print(cursor.statement) #отладка
 
         user = cursor.fetchone()
 
@@ -100,7 +99,6 @@ def get_roles():
 
     return roles
 
-import base64
 
 @app.route('/users')
 @login_required
@@ -112,6 +110,7 @@ def users():
         data = cursor.fetchall()
     users_data = []
     for user in data:
+
         if user.user_image:
             user_data = dict(user._asdict())  
             user_data['user_image'] = base64.b64encode(user.user_image).decode('utf-8')
@@ -242,8 +241,7 @@ def edit_order(order_id):
             return redirect(url_for('orders'))
         
         if order.order_status == 'Взят в работу':
-            notify_driver(order_id, f"Пользователь отправил запрос на изменение заказа номер {order_id}",
-                          1, request.form.get('date_order'), request.form.get('time_order'), request.form.get('user_descr'))
+            notify_driver(order_id, f"Пользователь отправил запрос на изменение заказа номер {order_id}", 1, request.form.get('date_order'), request.form.get('time_order'), request.form.get('user_descr'))
             flash("Запрос на изменение заказа отправлен", category="success")
             return redirect(url_for('orders'))
         else:
@@ -454,22 +452,19 @@ def create_user():
             with db_connector.connect().cursor() as cursor:
                 query_user = (
                     "INSERT INTO users (login, password, first_name, last_name, surname, date_birth, email, phone_num, role_id, user_image) "
-                    "VALUES (%(login)s, SHA2(%(password)s, 256), %(first_name)s, %(last_name)s, %(surname)s,"
-                    "%(date_birth)s, %(email)s, %(phone_num)s, %(role_id)s, %(user_image)s)"
+                    "VALUES (%(login)s, SHA2(%(password)s, 256), %(first_name)s, %(last_name)s, %(surname)s, %(date_birth)s, %(email)s, %(phone_num)s, %(role_id)s, %(user_image)s)"
                 )
                 user['user_image'] = user_image  
                 cursor.execute(query_user, user)
-                user_id = cursor.lastrowid
 
                 if user['role_id'] == '2':
                     driver_data = {
-                        'user_id': user_id,
                         'pass_info': request.form.get('pass_info'),
                         'class': request.form.get('class')
                     }
                     query_driver = (
-                        "INSERT INTO drivers_pro (user_id, pass_info, classdriver) "
-                        "VALUES (%(user_id)s, %(pass_info)s, %(class)s)"
+                        "INSERT INTO drivers_pro (pass_info, classdriver) "
+                        "VALUES (%(pass_info)s, %(class)s)"
                     )
                     cursor.execute(query_driver, driver_data)
 
@@ -791,6 +786,5 @@ def logout():
     return redirect(url_for("index"))
 
 @app.route('/secret')
-@login_required
 def secret():
     return render_template('secret.html')

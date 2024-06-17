@@ -50,9 +50,9 @@
                         </li>
                         {% endif %}
                         {% endif %}
-                        {% if not current_user.is_authenticated %}
+                        {% if current_user.is_authenticated %}
     
-                        {% endif %}
+                      
                         <li class="nav-item">
                             <a class="nav-link active" aria-current="page"
                                 href="{{ url_for('users') }}">Личный кабинет</a>
@@ -61,11 +61,12 @@
                             <li class="nav-item">
                                 <a class="nav-link active" aria-current="page" href="{{ url_for('notifications') }}">Уведомления</a>
                             </li>
-                
+                            {% endif %}
                         <li class="nav-item">
                             {% if current_user.is_authenticated %}
                             <a class="nav-link active" aria-current="page" href="{{ url_for('logout') }}">Выйти</a>
                             {% else %}
+                        
                             <a class="nav-link active" aria-current="page" href="{{ url_for('auth') }}">Войти</a>
                             {% endif %}
                         </li>

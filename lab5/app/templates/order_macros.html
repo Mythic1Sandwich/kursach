@@ -48,6 +48,7 @@
     <div class="mb-3">
         <label class="form-label" for="money_status">Тип оплаты</label>
         <select class="form-select" id="money_status" name="money_status" onchange="generateOrderCost()">
+            <option value=""></option>
             <option value="1" {% if order.money_status == 1 %}selected{% endif %}>Наличными курьеру</option>
             <option value="2" {% if order.money_status == 2 %}selected{% endif %}>Безналичная оплата</option>
             <option value="3" {% if order.money_status == 3 %}selected{% endif %}>Безналичная оплата курьеру</option>

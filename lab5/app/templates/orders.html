@@ -39,9 +39,11 @@
                 {% if order.order_status != 'Заказ выполнен' %}
                 <a class="btn btn-info" href="{{ url_for('view_order', order_id=order.order_id) }}">Просмотр</a>
                 <a class="btn btn-primary" href="{{ url_for('edit_order', order_id=order.order_id) }}">Редактировать</a>
+                {% if order.order_status != 'Выполнение заказа' %}
                 <form action="{{ url_for('delete_order', order_id=order.order_id) }}" method="post" style="display:inline;">
                   <button type="submit" class="btn btn-danger">Отменить заказ</button>
               </form>
+              {% endif %}
                 {% endif %}
                 {% if order.order_status == 'Заказ выполнен' %}
                 <a class="btn btn-info" href="{{ url_for('view_order', order_id=order.order_id) }}">Просмотр</a>
